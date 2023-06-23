@@ -1,0 +1,119 @@
+---
+PersistentVolume
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+spec:
+  containers:
+  - image: k8spatterns/random-generator:1.0
+    name: random-generator
+    volumeMounts:
+    - mountPath: "/logs"
+      name: log-volume
+  volumes:
+  - name: log-volume
+    persistentVolumeClaim:  1
+      claimName: random-generator-log
+
+---
+Example 2-2. Dependency on a ConfigMap
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+spec:
+  containers:
+  - image: k8spatterns/random-generator:1.0
+    name: random-generator
+    env:
+    - name: PATTERN
+      valueFrom:
+        configMapKeyRef:  1
+          name: random-generator-config
+          key: pattern
+---
+Example 2-3. Resource limits
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+spec:
+  containers:
+  - image: k8spatterns/random-generator:1.0
+    name: random-generator
+    resources:
+      requests:        1
+        cpu: 100m
+        memory: 200Mi
+      limits:          2
+        memory: 200Mi
+---
+Pod priority
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority  1
+value: 1000            2
+globalDefault: false   3
+description: This is a very high-priority Pod class
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+  labels:
+    env: random-generator
+spec:
+  containers:
+  - image: k8spatterns/random-generator:1.0
+    name: random-generator
+  priorityClassName: high-priority  4
+---
+resource constraints
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: object-counts
+  namespace: default   1
+spec:
+  hard:
+    pods: 4            2
+    limits.memory: 5Gi 3
+---
+ Definition of allowed and default resource usage limits:
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limits
+  namespace: default
+spec:
+  limits:
+  - min:                  1
+      memory: 250Mi
+      cpu: 500m
+    max:                  2
+      memory: 2Gi
+      cpu: 2
+    default:              3
+      memory: 500Mi
+      cpu: 500m
+    defaultRequest:       4
+      memory: 250Mi
+      cpu: 250m
+    maxLimitRequestRatio: 5
+      memory: 2
+      cpu: 4
+    type: Container       6
+
+---
+Capacity of resources allocarion:
+---
+
+
